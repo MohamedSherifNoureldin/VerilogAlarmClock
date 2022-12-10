@@ -1,24 +1,4 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 12/08/2022 06:42:12 PM
-// Design Name: 
-// Module Name: ClockDivider
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
-
 
 module ClockDivider #(parameter n = 50000000) (input clk, rst, output reg clk_out);
     reg [31:0] count;
@@ -37,6 +17,6 @@ module ClockDivider #(parameter n = 50000000) (input clk, rst, output reg clk_ou
         if (rst) // Asynchronous Reset
             clk_out <= 0;
         else if (count == n-1)
-            clk_out <= ~ clk_out;
+            clk_out <= ~clk_out;
     end
 endmodule
