@@ -59,7 +59,8 @@ module SystemAdjust( input clk, reset, enable, input[4:0] button_out,
     end
 
     always @(posedge clk, posedge reset) begin
-        if(reset || button_out[0]) state <= Initial;
+        if(reset) state <= Initial;
+        else if(button_out[0]) state <= Initial;
         else state <= nextstate;    
     end
     
