@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
 module System(input clk, rst, enable, input[4:0] button_in, output[0:6] segment, output[3:0] anodes, output decimal_point, output [3:0] LEDs, output mode_led, output alarm_led);
-    reg load, mode, alarm, alarm_flag; // 0 for clock mode, 1 for adjust mode
+    reg load, mode, nextMode, alarm, alarm_flag; // 0 for clock mode, 1 for adjust mode
     reg[3:0] num_displayed;
     reg[4:0] alarm_hours, clk_load_time_hours;
     reg[5:0] alarm_minutes, clk_load_time_minutes; 
@@ -52,8 +52,8 @@ module System(input clk, rst, enable, input[4:0] button_in, output[0:6] segment,
             
             num_displayed = min_display[sw];
             
+            mode <= nextMode;
             if(button_out[0]) begin
-                mode <= ~mode;
                 if(mode) begin
                     if(adjusted[0]) 
                         {clk_load_time_minutes, clk_load_time_hours} <= {adjusted_time_minutes, adjusted_time_hours};
@@ -62,6 +62,14 @@ module System(input clk, rst, enable, input[4:0] button_in, output[0:6] segment,
                 end
             end        
         end
+    end
+
+    // mode state machine
+    always @(button_out[0]) begin
+        switch(button_out[0])
+            0: nextMode = mode;
+            1: nextMode = ~mode;
+            default: nextMode = mode;
     end
     
     RisingEdgeDetectorExt #(100000000) rising1(clk, rst, button_out[0] && mode && adjusted[0], load_out);  
