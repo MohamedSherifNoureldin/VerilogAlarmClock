@@ -1,10 +1,12 @@
 `timescale 1ns / 1ps
 
 module System(input clk, rst, enable, input[4:0] button_in, output[0:6] segment, output[3:0] anodes, output decimal_point, output [3:0] LEDs, output mode_led, output alarm_led);
+
     reg load, mode, nextMode, alarm, alarm_flag; // 0 for clock mode, 1 for adjust mode
     reg[3:0] num_displayed;
     reg[4:0] alarm_hours, clk_load_time_hours;
     reg[5:0] alarm_minutes, clk_load_time_minutes; 
+
     wire[4:0] adjusted_alarm_hours, adjusted_time_hours, button_out; 
     wire[5:0] adjusted_alarm_minutes, adjusted_time_minutes;
     wire[1:0] adjusted, sw;
