@@ -1,9 +1,7 @@
 `timescale 1ns / 1ps
 
-module SystemCounter(input clk, reset, enable, load, input [5:0] time_minutes, input [4:0] time_hours, output [3:0] min_units, hour_units, output [2:0] min_tens, hour_tens);
+module SystemCounter(input clk, reset, enable, load, input [5:0] time_minutes, input [4:0] time_hours, output [3:0] sec_units, min_units, hour_units, output [2:0] sec_tens, min_tens, hour_tens);
     wire clk_out; // we can ignore it as it is a one bit wire
-    wire [3:0] sec_units;
-    wire [2:0] sec_tens;
     reg reset_counter;
     
     ClockDivider ck(clk, reset, clk_out);

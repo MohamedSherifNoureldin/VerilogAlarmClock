@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module System(input clk, rst, enable, input[4:0] button_in, output[0:6] segment, output[3:0] anodes, output decimal_point, output [3:0] LEDs, output mode_led, output alarm_led);
+module System(input clk, rst, enable, input[4:0] button_in, output[0:6] segment, output[3:0] anodes, output decimal_point, output [3:0] LEDs, output mode_led, output alarm_led, output speaker);
 
     reg load, mode, nextMode, alarm, alarm_flag; // 0 for clock mode, 1 for adjust mode
     reg[3:0] num_displayed;
@@ -15,6 +15,7 @@ module System(input clk, rst, enable, input[4:0] button_in, output[0:6] segment,
     
     // 0: min_units, 1: min_tens, 2: hour_units, 3: hour_tens
     wire[3:0] clk_time[3:0], adj_time[3:0]; 
+    wire[3:0] sec_time[1:0];
     reg[3:0] min_display[3:0];
     
     // Push button detectors
@@ -27,7 +28,7 @@ module System(input clk, rst, enable, input[4:0] button_in, output[0:6] segment,
     // Controlling the decimal point 
     ClockDivider #(50000000) ckDecimal(clk, rst, clk_sec);
     // Controlling min and hours digits 
-    SystemCounter counter(clk, rst, enable, load_out, clk_load_time_minutes, clk_load_time_hours, clk_time[0], clk_time[2], clk_time[1], clk_time[3]);
+    SystemCounter counter(clk, rst, enable, load_out, clk_load_time_minutes, clk_load_time_hours, sec_time[0], clk_time[0], clk_time[2], sec_time[1], clk_time[1], clk_time[3]);
     
     // ----------- Adjust Mode -----------
     SystemAdjust adjust(clk, rst, enable, button_out,
@@ -68,22 +69,26 @@ module System(input clk, rst, enable, input[4:0] button_in, output[0:6] segment,
 
     // mode state machine
     always @(button_out[0]) begin
-        switch(button_out[0])
+        case(button_out[0])
             0: nextMode = mode;
             1: nextMode = ~mode;
             default: nextMode = mode;
+        endcase
     end
     
     RisingEdgeDetectorExt #(100000000) rising1(clk, rst, button_out[0] && mode && adjusted[0], load_out);  
     
-    always @(posedge clk_sec) begin
-        if (button_out) alarm_flag <= 0;
-        else if (mode == 0 && clk_time[1] * 10 + clk_time[0] == alarm_minutes && clk_time[3] * 10 + clk_time[2] == alarm_hours) 
+    reg[6:0] last_alarm[1:0];
+    always @(posedge clk) begin
+        if (rst) alarm_flag <= 0;
+        else if (button_out != 0) alarm_flag <= 0;
+        else if (mode == 0 && clk_time[1] * 10 + clk_time[0] == alarm_minutes && clk_time[3] * 10 + clk_time[2] == alarm_hours && {sec_time[0], sec_time[1]} == 0) 
             alarm_flag <= 1;    
-        else alarm_flag <= 0;  
-          
-        alarm <= ~alarm;
     end
+    
+    always @(posedge clk_sec) alarm <= ~alarm;
+    
+    Buzzer buz(clk, (alarm_flag && alarm), speaker);
 
     assign LEDs = (mode == 0) ? 0 : adj_leds;
     assign mode_led = mode;
